@@ -88,7 +88,7 @@ Second, this output is trying to preserve the semantics of the ES6 modules, incl
 
 For a module without imports, and a single default exports:
 
-```
+```javascript
 export default function (a, b) {
   return a + b;
 }
@@ -96,7 +96,7 @@ export default function (a, b) {
 
 will produce something like this:
 
-```
+```javascript
 System.register("component/foo", [], function(__es6_export__) {
   return {
     "setters": [],
@@ -114,7 +114,7 @@ System.register("component/foo", [], function(__es6_export__) {
 
 A more complex example will look like this:
 
-```
+```javascript
 import assert from "./assert";
 
 export default function (a, b) {
@@ -126,7 +126,7 @@ export default function (a, b) {
 
 and the output will be:
 
-```
+```javascript
 System.register("component/foo", ["./assert"], function(__es6_export__) {
   var assert;
 
