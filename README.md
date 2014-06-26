@@ -1,4 +1,4 @@
-es6-module-transpiler-system-register
-=====================================
+es6-module-transpiler-formatter-system
+======================================
 
-ES6 Module Transpiler Extension to Output `System.register()` Format
+ES6 Module Transpiler Formatter to Output `System.register()` Format

@@ -1,25 +1,22 @@
 {
-  "name": "es6-module-transpiler-system-register",
+  "name": "es6-module-transpiler-formatter-system",
   "version": "0.0.1",
   "description": "ES6 Module Transpiler Extension to Output System.register() Format.",
-  "homepage": "https://github.com/caridy/es6-module-transpiler-system-register",
+  "author": "Caridy Patino <caridy@gmail.com>",
+  "homepage": "https://github.com/caridy/es6-module-transpiler-formatter-system",
   "keywords": [
     "es6",
     "module",
-    "transpile",
+    "transpiler",
     "system",
-    "es5"
+    "module-formatter"
   ],
-  "bugs": "https://github.com/caridy/es6-module-transpiler-system-register/issues",
+  "bugs": "https://github.com/caridy/es6-module-transpiler-formatter-system/issues",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/caridy/es6-module-transpiler-system-register.git"
+    "url": "https://github.com/caridy/es6-module-transpiler-formatter-system.git"
   },
-  "scripts": {
-    "test": "npm run test-bundle && npm run test-commonjs"
-  },
-  "author": "Square, Inc.",
   "license": "MIT",
   "dependencies": {
     "recast": "^0.5.17"

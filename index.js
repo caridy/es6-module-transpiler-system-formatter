@@ -6,7 +6,7 @@ var recast = require('recast');
 var types = recast.types;
 var n = types.namedTypes;
 var b = types.builders;
-var Replacement = require('./replacement');
+var Replacement = require('./lib/replacement');
 
 function sourcePosition(mod, node) {
   var loc = node && node.loc;
