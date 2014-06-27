@@ -1,11 +1,11 @@
-es6-module-transpiler-formatter-system
+es6-module-transpiler-system-formatter
 ======================================
 
 ES6 Module Transpiler Formatter to Output `System.register()` Format
 
 ## Overview
 
-ES6 Module Transpiler `es6-module-transpiler` is an experimental compiler that allows you to write your JavaScript using a subset of the current ES6 module syntax, and compile it into various formats. The `es6-module-transpiler-formatter-system` is one of those output formats that is focus on bringing the ES6 module semantics back to ES5 so you can start using those modules today.
+ES6 Module Transpiler `es6-module-transpiler` is an experimental compiler that allows you to write your JavaScript using a subset of the current ES6 module syntax, and compile it into various formats. The `es6-module-transpiler-system-formatter` is one of those output formats that is focus on bringing the ES6 module semantics back to ES5 so you can start using those modules today.
 
 Part of the discussion around this format happened in a github issue https://github.com/google/traceur-compiler/issues/1072, If you plan to understand how this works, make sure you read the thread before asking questions :p
 
@@ -36,7 +36,7 @@ Since this formatters is an plugin for [es6-module-transpiler], you can use it w
 * **Broccoli:** [broccoli-es6-concatenator](https://github.com/joliss/broccoli-es6-concatenator), maintained by @joliss (not yet compatible with v0.5.x)
 * **Mimosa:** [mimosa-es6-module-transpiler](https://github.com/dbashford/mimosa-es6-module-transpiler), maintained by @dbashford (not yet compatible with v0.5.x)
 
-You just need to make sure that `es6-module-transpiler-formatter-system` is accessible for those tools, and pass the proper `formatter` option thru the [es6-module-transpiler]'s configuration.
+You just need to make sure that `es6-module-transpiler-system-formatter` is accessible for those tools, and pass the proper `formatter` option thru the [es6-module-transpiler]'s configuration.
 
 ### Executable
 
@@ -44,8 +44,8 @@ If you plan to use the `compile-module` CLI, the formatters can be used directly
 
 ```
 $ npm install -g es6-module-transpiler
-$ npm install es6-module-transpiler-formatter-system
-$ compile-modules convert -f ./node_modules/es6-module-transpiler-formatter-system path/to/**/*.js -o build/
+$ npm install es6-module-transpiler-system-formatter
+$ compile-modules convert -f ./node_modules/es6-module-transpiler-system-formatter path/to/**/*.js -o build/
 ```
 
 __The `-f` option allow you to specify the path to the specific formatter.__
@@ -56,7 +56,7 @@ You can also use the formatter with the transpiler as a library:
 
 ```javascript
 var transpiler = require('es6-module-transpiler');
-var SystemFormatter = require('es6-module-transpiler-formatter-system');
+var SystemFormatter = require('es6-module-transpiler-system-formatter');
 var Container = transpiler.Container;
 var FileResolver = transpiler.FileResolver;
 
