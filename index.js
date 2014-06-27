@@ -351,7 +351,7 @@ SystemFormatter.prototype.buildSetterFunctionDeclarations = function(mod) {
 
   function getFnDeclarationBody(id) {
     if (!fnByModule[id]) {
-      fnByModule[id] = b.functionDeclaration(b.identifier(id), [b.identifier('m'), b.identifier('name')], b.blockStatement([]));
+      fnByModule[id] = b.functionDeclaration(b.identifier(id), [b.identifier('m')], b.blockStatement([]));
     }
     return fnByModule[id].body.body;
   }
