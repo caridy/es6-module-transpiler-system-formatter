@@ -198,7 +198,6 @@ SystemFormatter.prototype.processExportDeclaration = function(mod, nodePath) {
   } else if (declaration) {
     throw new Error('unexpected export style, found a declaration of type: ' + declaration.type);
   } else {
-    // TODO: support export foo from "foo";
     return Replacement.removes(nodePath);
   }
 };
