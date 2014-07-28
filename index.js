@@ -292,7 +292,6 @@ SystemFormatter.prototype.buildDependenciesMeta = function(mod) {
         return;
       }
       requiredModules.push(sourceModule);
-      importedModuleIdentifiers.push(b.identifier(sourceModule.id));
 
       var matchingDeclaration;
       declarations.declarations.some(function(declaration) {
@@ -301,7 +300,11 @@ SystemFormatter.prototype.buildDependenciesMeta = function(mod) {
           return true;
         }
       });
-
+      
+      importedModuleIdentifiers.push(
+        b.identifier(matchingDeclaration.sourcePath.replace(/[^\w$_]/g, '$') + '$$')
+      );
+      
       assert.ok(
         matchingDeclaration,
         'no matching declaration for source module: ' + sourceModule.relativePath
@@ -358,7 +361,7 @@ SystemFormatter.prototype.buildSetterFunctionDeclarations = function(mod) {
   // import {foo} from "foo"; should hoist variables declaration
   mod.imports.names.forEach(function (name) {
     var importDeclaration = mod.imports.findSpecifierByName(name),
-      id = mod.getModule(importDeclaration.declaration.node.source.value).id;
+      id = importDeclaration.declaration.node.source.value.replace(/[^\w$_]/g, '$') + '$$';
 
     if (importDeclaration.from === 'default') {
       getFnDeclarationBody(id).push(
