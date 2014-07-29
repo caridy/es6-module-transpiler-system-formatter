@@ -1,21 +1,11 @@
 /* jshint node:true, undef:true, unused:true */
 
 var assert = require('assert');
-
 var recast = require('recast');
 var types = recast.types;
 var n = types.namedTypes;
 var b = types.builders;
 var Replacement = require('./lib/replacement');
-
-function sourcePosition(mod, node) {
-  var loc = node && node.loc;
-  if (loc) {
-    return mod.relativePath + ':' + loc.start.line + ':' + (loc.start.column + 1);
-  } else {
-    return mod.relativePath;
-  }
-}
 
 /**
  * The 'System.register' setting for referencing exports aims to produce code that can
@@ -138,9 +128,9 @@ SystemFormatter.prototype.defaultExport = function(mod, declaration) {
     // export default function <name> () {}
     if (!declaration.id) {
       // anonymous functionDeclaration
-      return [b.expressionStatement(
+      return b.expressionStatement(
         b.callExpression(b.identifier('__es6_export__'), [b.literal("default"), b.functionExpression(null, declaration.params, declaration.body)])
-      )];
+      );
     } else {
       // named functionDeclaration
       return [
@@ -150,19 +140,11 @@ SystemFormatter.prototype.defaultExport = function(mod, declaration) {
         )
       ];
     }
-  } else if (n.VariableDeclaration.check(declaration)) {
-    // export default var foo = 1, bar = 2;
-    return [
-      b.variableDeclaration('var', declaration.declarations),
-      b.expressionStatement(
-        b.callExpression(b.identifier('__es6_export__'), [b.literal("default"), declaration.declarations[0].id])
-      )
-    ];
   } else {
     // export default {foo: 1};
-    return [b.expressionStatement(
+    return b.expressionStatement(
       b.callExpression(b.identifier('__es6_export__'), [b.literal("default"), declaration])
-    )];
+    );
   }
 };
 
@@ -189,12 +171,19 @@ SystemFormatter.prototype.processExportDeclaration = function(mod, nodePath) {
       b.callExpression(b.identifier('__es6_export__'), [b.literal(declaration.id.name), declaration.id])
     )]);
   } else if (n.VariableDeclaration.check(declaration)) {
-    // export default var foo = 1;
-    return Replacement.swaps(nodePath, [declaration].concat(declaration.declarations.map(function (declaration) {
-      return b.expressionStatement(
-        b.callExpression(b.identifier('__es6_export__'), [b.literal(declaration.id.name), declaration.id])
-      )
-    })));
+    // export var foo = 1, bar = 3;
+    declaration.declarations.forEach(function (dec) {
+      if (n.VariableDeclarator.check(dec) && dec.init) {
+        dec.init = b.callExpression(
+          b.identifier('__es6_export__'),
+          [
+            b.literal(dec.id.name),
+            dec.init
+          ]
+        );
+      }
+    });
+    return Replacement.swaps(nodePath, declaration);
   } else if (declaration) {
     throw new Error('unexpected export style, found a declaration of type: ' + declaration.type);
   } else {
@@ -212,6 +201,57 @@ SystemFormatter.prototype.processExportDeclaration = function(mod, nodePath) {
  */
 SystemFormatter.prototype.processImportDeclaration = function(mod, nodePath) {
   return Replacement.removes(nodePath);
+};
+
+/**
+ * Replaces reassignment of an exported with an statement to notify the update.
+ * e.g.
+ *
+ *   foo = 1;
+ *
+ * will become:
+ *
+ *   __es6_export__("foo", foo = 1);
+ *
+ * @param {Module} mod
+ * @param {ast-types.NodePath} nodePath
+ * @return {?Replacement}
+ */
+SystemFormatter.prototype.processExportReassignment = function (mod, nodePath) {
+  if (n.AssignmentExpression.check(nodePath.node)) {
+    return Replacement.swaps(nodePath, b.callExpression(
+      b.identifier('__es6_export__'),
+      [
+        b.literal(nodePath.get('left').value.name),
+        nodePath.node
+      ]
+    ));
+  } else if (n.UpdateExpression.check(nodePath.node) && nodePath.get("prefix").value) {
+    return Replacement.swaps(nodePath, b.callExpression(
+      b.identifier('__es6_export__'),
+      [
+        b.literal(nodePath.get('argument').value.name),
+        nodePath.node
+      ]
+    ));
+  } else if (n.UpdateExpression.check(nodePath.node) && !nodePath.get("prefix").value) {
+    return Replacement.swaps(nodePath, b.sequenceExpression([
+      b.callExpression(
+        b.identifier('__es6_export__'),
+        [
+          b.literal(nodePath.get('argument').value.name),
+          b.binaryExpression(
+            nodePath.node.operator === '++' ? '+' : '-',
+            nodePath.get('argument').value,
+            b.literal(1)
+          )
+        ]
+      ),
+      nodePath.node
+    ]));
+  }
+
+  return null;
 };
 
 /**
@@ -254,7 +294,7 @@ SystemFormatter.prototype.build = function(modules) {
       )
     ])));
 
-    // replacing the body of the program with the wrapped System.import() call
+    // replacing the body of the program with the wrapped System.register() call
     mod.ast.program.body = [b.expressionStatement(b.callExpression(b.memberExpression(b.identifier('System'), b.identifier('register'), false), [
         // module name argument
         b.literal(mod.name),
@@ -307,7 +347,7 @@ SystemFormatter.prototype.buildDependenciesMeta = function(mod) {
         'no matching declaration for source module: ' + sourceModule.relativePath
       );
 
-      importedModules.push(b.literal(matchingDeclaration.sourcePath))
+      importedModules.push(b.literal(matchingDeclaration.sourcePath));
     });
   });
 
@@ -345,8 +385,7 @@ SystemFormatter.prototype.buildImportedVariables = function(mod) {
  * @return {ast-types.Array}
  */
 SystemFormatter.prototype.buildSetterFunctionDeclarations = function(mod) {
-  var self = this,
-    fnByModule = {};
+  var fnByModule = {};
 
   function getFnDeclarationBody(id) {
     if (!fnByModule[id]) {
@@ -360,29 +399,16 @@ SystemFormatter.prototype.buildSetterFunctionDeclarations = function(mod) {
     var importDeclaration = mod.imports.findSpecifierByName(name),
       id = mod.getModule(importDeclaration.declaration.node.source.value).id;
 
-    if (importDeclaration.from === 'default') {
-      getFnDeclarationBody(id).push(
-        b.expressionStatement(b.assignmentExpression("=",
-          b.identifier(importDeclaration.name),
-          b.memberExpression(
-            b.identifier('m'),
-            b.literal(importDeclaration.from),
-            true
-          )
-        ))
-      );
-    } else {
-      getFnDeclarationBody(id).push(
-        b.expressionStatement(b.assignmentExpression("=",
-          b.identifier(importDeclaration.name),
-          b.memberExpression(
-            b.identifier('m'),
-            b.identifier(importDeclaration.from),
-            false
-          )
-        ))
-      );
-    }
+    getFnDeclarationBody(id).push(
+      b.expressionStatement(b.assignmentExpression("=",
+        b.identifier(importDeclaration.name),
+        b.memberExpression(
+          b.identifier('m'),
+          b.literal(importDeclaration.from),
+          true
+        )
+      ))
+    );
   });
 
   mod.exports.names.forEach(function(name) {
@@ -398,7 +424,7 @@ SystemFormatter.prototype.buildSetterFunctionDeclarations = function(mod) {
     if (!specifier.declaration.node.source) {
       return;
     }
-    id = mod.getModule(specifier.declaration.node.source.value).id
+    id = mod.getModule(specifier.declaration.node.source.value).id;
     getFnDeclarationBody(id).push(b.expressionStatement(
       b.callExpression(b.identifier('__es6_export__'), [
         b.literal(specifier.name),
@@ -417,7 +443,7 @@ SystemFormatter.prototype.buildSetterFunctionDeclarations = function(mod) {
     });
   } else {
     return [];
-  };
+  }
 };
 
 module.exports = SystemFormatter;
