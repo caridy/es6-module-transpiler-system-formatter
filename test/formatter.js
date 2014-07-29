@@ -7,7 +7,7 @@ var chai = require('chai'),
 
 var System = require('es6-micro-loader');
 
-describe('yui-formatter', function() {
+describe('system-formatter', function() {
 
   it('should load mod1', function(next) {
     System.import('build/test/fixtures/1').then(function(mod1) {
