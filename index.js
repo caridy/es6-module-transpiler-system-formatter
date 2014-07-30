@@ -332,7 +332,17 @@ SystemFormatter.prototype.buildDependenciesMeta = function(mod) {
         return;
       }
       requiredModules.push(sourceModule);
-      importedModuleIdentifiers.push(b.identifier(sourceModule.id));
+      
+      declarations.names.some(function(name) {
+        var importDeclaration = declarations.findSpecifierByName(name),
+          node = importDeclaration.declaration.node,
+          depModule = node && node.source && node.source.value && mod.getModule(node.source.value);
+
+        if(depModule === sourceModule) {
+          importedModuleIdentifiers.push(b.identifier(sourceModule.id));
+          return true;
+        }
+      });
 
       var matchingDeclaration;
       declarations.declarations.some(function(declaration) {
