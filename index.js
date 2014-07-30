@@ -333,19 +333,20 @@ SystemFormatter.prototype.buildDependenciesMeta = function(mod) {
       }
       requiredModules.push(sourceModule);
 
-      var hasName = declarations.names.some(function(name) {
+      // import "foo"; will never have a local binding name or a setter function
+      var localBindingIdentifier;
+      declarations.names.some(function(name) {
         var importDeclaration = declarations.findSpecifierByName(name),
-          node = importDeclaration.declaration.node,
-          depModule = node && node.source && node.source.value && mod.getModule(node.source.value);
+          node = importDeclaration.declaration.node;
 
-        return depModule === sourceModule;
+        if((node && node.source && node.source.value && mod.getModule(node.source.value)) === sourceModule) {
+          localBindingIdentifier = sourceModule.id;
+          return true;
+        }
       });
 
-      if(hasName) {
-        importedModuleIdentifiers.push(b.identifier(sourceModule.id));
-      } else {
-        importedModuleIdentifiers.push(b.identifier("null"));
-      }
+      // If there is no local binding name then add a null to the setters array
+      importedModuleIdentifiers.push(b.identifier(localBindingIdentifier || "null"));
 
       var matchingDeclaration;
       declarations.declarations.some(function(declaration) {
