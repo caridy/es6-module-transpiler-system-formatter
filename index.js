@@ -332,21 +332,7 @@ SystemFormatter.prototype.buildDependenciesMeta = function(mod) {
         return;
       }
       requiredModules.push(sourceModule);
-
-      // import "foo"; will never have a local binding name or a setter function
-      var localBindingIdentifier;
-      declarations.names.some(function(name) {
-        var importDeclaration = declarations.findSpecifierByName(name),
-          node = importDeclaration.declaration.node;
-
-        if((node && node.source && node.source.value && mod.getModule(node.source.value)) === sourceModule) {
-          localBindingIdentifier = sourceModule.id;
-          return true;
-        }
-      });
-
-      // If there is no local binding name then add a null to the setters array
-      importedModuleIdentifiers.push(b.identifier(localBindingIdentifier || "null"));
+      importedModuleIdentifiers.push(b.identifier(sourceModule.id));
 
       var matchingDeclaration;
       declarations.declarations.some(function(declaration) {
@@ -407,6 +393,10 @@ SystemFormatter.prototype.buildSetterFunctionDeclarations = function(mod) {
     }
     return fnByModule[id].body.body;
   }
+
+  mod.imports.modules.forEach(function (mod) {
+    getFnDeclarationBody(mod.id);
+  });
 
   // import {foo} from "foo"; should hoist variables declaration
   mod.imports.names.forEach(function (name) {
