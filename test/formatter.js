@@ -27,4 +27,11 @@ describe('system-formatter', function() {
     });
   });
 
+  it('should load mod3', function(next) {
+    System.import('build/test/fixtures/3').then(function(mod3) {
+      expect(mod3.default).to.be.a('undefined');
+      next();
+    });
+  });
+
 });
