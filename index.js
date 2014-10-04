@@ -13,7 +13,9 @@ var Replacement = require('./lib/replacement');
  *
  * @constructor
  */
-function SystemFormatter() {}
+function SystemFormatter(config) {
+    this.anonymous = config && config.anonymous;
+}
 
 /**
  * Returns an expression which globally references the export named by
@@ -163,7 +165,8 @@ SystemFormatter.prototype.defaultExport = function(mod, declaration) {
  */
 SystemFormatter.prototype.processExportDeclaration = function(mod, nodePath) {
   var node = nodePath.node,
-    declaration = node.declaration;
+    declaration = node.declaration,
+    specifiers = node.specifiers;
 
   if (n.FunctionDeclaration.check(declaration)) {
     // export function <name> () {}
@@ -187,7 +190,11 @@ SystemFormatter.prototype.processExportDeclaration = function(mod, nodePath) {
   } else if (declaration) {
     throw new Error('unexpected export style, found a declaration of type: ' + declaration.type);
   } else {
-    return Replacement.removes(nodePath);
+    return Replacement.swaps(nodePath, [].concat(specifiers.map(function (specifier) {
+      return b.expressionStatement(
+        b.callExpression(b.identifier('__es6_export__'), [b.literal((specifier.name || specifier.id).name), specifier.id])
+      );
+    })));
   }
 };
 
@@ -294,15 +301,28 @@ SystemFormatter.prototype.build = function(modules) {
       )
     ])));
 
-    // replacing the body of the program with the wrapped System.register() call
-    mod.ast.program.body = [b.expressionStatement(b.callExpression(b.memberExpression(b.identifier('System'), b.identifier('register'), false), [
-        // module name argument
-        b.literal(mod.name),
-        // dependencies argument
-        b.arrayExpression(meta.deps),
-        // wrapper function
-        b.functionExpression(null, [b.identifier('__es6_export__')], b.blockStatement(wrapperBlock))
-    ]))];
+    var deps = b.arrayExpression(meta.deps);
+    var wrapper = b.functionExpression(null, [b.identifier('__es6_export__')], b.blockStatement(wrapperBlock));
+
+    if (self.anonymous) {
+        // replacing the body of the program with the wrapped System.register() call
+        mod.ast.program.body = [b.expressionStatement(b.callExpression(b.memberExpression(b.identifier('System'), b.identifier('register'), false), [
+            // dependencies argument
+            deps,
+            // wrapper function
+            wrapper
+        ]))];
+    } else {
+        // replacing the body of the program with the wrapped System.register() call
+        mod.ast.program.body = [b.expressionStatement(b.callExpression(b.memberExpression(b.identifier('System'), b.identifier('register'), false), [
+            // module name argument
+            b.literal(mod.name),
+            // dependencies argument
+            deps,
+            // wrapper function
+            wrapper
+        ]))];
+    }
 
     mod.ast.filename = mod.relativePath;
     return mod.ast;
