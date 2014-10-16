@@ -65,9 +65,9 @@ container.write('out/mylib.js');
 
 ## Supported ES6 Module Syntax
 
-Again, this syntax is in flux and is closely tracking the module work being done by TC39. This package relies on the syntax supported by [es6-module-transpiler], which relies on [esprima], you can have more information about the supported syntax here: https://github.com/square/es6-module-transpiler#supported-es6-module-syntax
+This package relies on the syntax supported by [es6-module-transpiler], which relies on [esprima-fb], you can have more information about the supported syntax here: https://github.com/square/es6-module-transpiler#supported-es6-module-syntax
 
-[esprima]: https://github.com/ariya/esprima
+[esprima-fb]: https://github.com/facebook/esprima
 
 ## Compiled Output
 
