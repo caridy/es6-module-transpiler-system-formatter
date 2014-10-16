@@ -1,6 +1,6 @@
 {
   "name": "es6-module-transpiler-system-formatter",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "ES6 Module Transpiler Extension to Output System.register() Format.",
   "author": "Caridy Patino <caridy@gmail.com>",
   "homepage": "https://github.com/caridy/es6-module-transpiler-system-formatter",
@@ -20,15 +20,15 @@
   },
   "license": "MIT",
   "dependencies": {
-    "recast": "^0.6.7"
+    "recast": "~0.8.0"
   },
   "devDependencies": {
-    "es6-module-transpiler": "^0.6.0",
+    "es6-module-transpiler": "~0.8.2",
     "chai": "~1.8.1",
     "mocha": "~1.15.1",
     "xunit-file": "*",
     "istanbul": "~0.1.46",
-    "es6-micro-loader": "caridy/es6-micro-loader"
+    "es6-micro-loader": "~0.2.0"
   },
   "scripts": {
     "pretest": "./node_modules/.bin/compile-modules convert -f ../../../../index.js test/**/*.js -o ./build",
