@@ -126,28 +126,23 @@ SystemFormatter.prototype.localReference = function(mod, referencePath) {
  * @return {ast-types.Statement}
  */
 SystemFormatter.prototype.defaultExport = function(mod, declaration) {
-  if (n.FunctionExpression.check(declaration)) {
-    // export default function <name> () {}
-    if (!declaration.id) {
-      // anonymous functionDeclaration
-      return b.expressionStatement(
-        b.callExpression(b.identifier('__es6_export__'), [b.literal("default"), b.functionExpression(null, declaration.params, declaration.body)])
-      );
-    } else {
-      // named functionDeclaration
-      return [
-        b.functionDeclaration(declaration.id, declaration.params, declaration.body),
-        b.expressionStatement(
-          b.callExpression(b.identifier('__es6_export__'), [b.literal("default"), declaration.id])
-        )
-      ];
-    }
-  } else {
-    // export default {foo: 1};
-    return b.expressionStatement(
-      b.callExpression(b.identifier('__es6_export__'), [b.literal("default"), declaration])
-    );
+  if (n.FunctionDeclaration.check(declaration) ||
+      n.ClassDeclaration.check(declaration)) {
+    // export default function foo () {}
+    // -> becomes:
+    // function foo () {}
+    // __es6_export__('default', foo);
+    return [
+      declaration,
+      b.expressionStatement(
+        b.callExpression(b.identifier('__es6_export__'), [b.literal("default"), declaration.id])
+      )
+    ];
   }
+  // export default {foo: 1};
+  return [b.expressionStatement(
+    b.callExpression(b.identifier('__es6_export__'), [b.literal("default"), declaration])
+  )];
 };
 
 /**
