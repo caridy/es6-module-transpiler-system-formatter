@@ -38,4 +38,14 @@ describe('system-formatter', function() {
     });
   });
 
+  it('should support import namespace', function(next) {
+    System.import('build/test/fixtures/4').then(function(mod4) {
+      expect(mod4.default.length).to.be.equal(3);
+      expect(mod4.default[0]).to.be.equal('a');
+      expect(mod4.default[1]).to.be.equal('b');
+      expect(mod4.default[2]).to.be.equal('z');
+      next();
+    });
+  });
+
 });

@@ -415,19 +415,32 @@ SystemFormatter.prototype.buildSetterFunctionDeclarations = function(mod) {
 
   // import {foo} from "foo"; should hoist variables declaration
   mod.imports.names.forEach(function (name) {
-    var importDeclaration = mod.imports.findSpecifierByName(name),
-      id = mod.getModule(importDeclaration.declaration.node.source.value).id;
+    var specifier = mod.imports.findSpecifierByName(name),
+      id = mod.getModule(specifier.declaration.node.source.value).id;
 
-    getFnDeclarationBody(id).push(
-      b.expressionStatement(b.assignmentExpression("=",
-        b.identifier(importDeclaration.name),
-        b.memberExpression(
-          b.identifier('m'),
-          b.literal(importDeclaration.from),
-          true
-        )
-      ))
-    );
+    if (specifier.from) {
+      // import { value } from './a';
+      // import a from './a';
+      getFnDeclarationBody(id).push(
+        b.expressionStatement(b.assignmentExpression("=",
+          b.identifier(specifier.name),
+          b.memberExpression(
+            b.identifier('m'),
+            b.literal(specifier.from),
+            true
+          )
+        ))
+      );
+    } else {
+      // import * as a from './a'
+      getFnDeclarationBody(id).push(
+        b.expressionStatement(b.assignmentExpression("=",
+          b.identifier(specifier.name),
+          b.identifier('m')
+        ))
+      );
+    }
+
   });
 
   mod.exports.names.forEach(function(name) {
