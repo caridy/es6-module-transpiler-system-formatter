@@ -163,7 +163,8 @@ SystemFormatter.prototype.processExportDeclaration = function(mod, nodePath) {
     declaration = node.declaration,
     specifiers = node.specifiers;
 
-  if (n.FunctionDeclaration.check(declaration)) {
+  if (n.FunctionDeclaration.check(declaration) ||
+      n.ClassDeclaration.check(declaration)) {
     // export function <name> () {}
     return Replacement.swaps(nodePath, [declaration, b.expressionStatement(
       b.callExpression(b.identifier('__es6_export__'), [b.literal(declaration.id.name), declaration.id])
